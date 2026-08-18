@@ -35,7 +35,12 @@ interface ReportMutationResponse extends MutationResponse {
 }
 
 function getApiUrl(path: string) {
-  return `${apiBaseUrl}${path}`
+  const normalizedBase = apiBaseUrl.replace(/\/$/, '')
+  const normalizedPath = normalizedBase.endsWith('/api') && path.startsWith('/api/')
+    ? path.slice(4)
+    : path
+
+  return `${normalizedBase}${normalizedPath}`
 }
 
 async function request<T>(path: string, init: RequestInit = {}, token?: string): Promise<T> {
