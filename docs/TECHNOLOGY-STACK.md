@@ -93,5 +93,5 @@ Current notable dependencies:
 1. The current full-stack MVP can be served locally with `npm run dev:full`.
 2. The current production validation command is `npm run build`.
 3. Vite proxies `/api` to `http://localhost:4310` during local development.
-4. Docker Compose exposes PostgreSQL on localhost port `5433` and Adminer on `18082`.
+4. Docker Compose exposes PostgreSQL on localhost port `5433` and Adminer on `18082` for local development.
 5. The current Node runtime on this machine successfully built the project with the Vite 5 scaffold used in the repository.
