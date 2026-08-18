@@ -1,0 +1,152 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Operator {
+  id            String       @id
+  displayName   String
+  role          String
+  accessKeyHash String
+  active        Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  sessions      Session[]
+}
+
+model Session {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  operatorId String
+  operator  Operator  @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([operatorId])
+  @@index([expiresAt])
+}
+
+model CaseRecord {
+  id            String            @id
+  title         String
+  category      String
+  priority      String
+  status        String
+  summary       String
+  owner         String
+  openedAt      DateTime
+  lastUpdatedAt DateTime
+  notes         String            @default("")
+  subjectLinks  CaseSubjectLink[]
+  evidence      EvidenceItem[]
+  reports       ReportArtifact[]
+
+  @@index([category])
+  @@index([priority])
+  @@index([status])
+  @@index([owner])
+  @@index([lastUpdatedAt])
+}
+
+model SubjectProfile {
+  id                String            @id
+  name              String
+  alias             String            @default("")
+  nationalId        String
+  location          String            @default("")
+  occupation        String            @default("")
+  threatLevel       String
+  riskFinancial     Int
+  riskNetwork       Int
+  riskMobility      Int
+  heightCm          Int
+  weightKg          Int
+  bodyType          String
+  footSize          String            @default("")
+  hobbies           String            @default("")
+  medicalConditions String            @default("")
+  appearanceMode    String
+  sex               String
+  faceConcept       String
+  hairstyle         String
+  skinTone          String
+  hairColor         String
+  eyeColor          String
+  facialHair        String
+  photoUrl          String?
+  analystNote       String            @default("")
+  caseLinks         CaseSubjectLink[]
+  reports           ReportArtifact[]
+
+  @@index([name])
+  @@index([alias])
+  @@index([nationalId])
+  @@index([location])
+  @@index([threatLevel])
+}
+
+model CaseSubjectLink {
+  id        String         @id @default(uuid())
+  caseId    String
+  subjectId String
+  role      String
+  case      CaseRecord     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  subject   SubjectProfile @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+
+  @@unique([caseId, subjectId])
+  @@index([subjectId])
+}
+
+model EvidenceItem {
+  id          String     @id
+  caseId      String
+  case        CaseRecord @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  type        String
+  source      String
+  summary     String
+  custodyNote String     @default("")
+  capturedAt  DateTime
+
+  @@index([caseId])
+  @@index([type])
+  @@index([capturedAt])
+}
+
+model AuditEvent {
+  id         String    @id
+  actor      String
+  action     String
+  targetType String
+  targetId   String
+  detail     String
+  createdAt  DateTime
+
+  @@index([actor])
+  @@index([action])
+  @@index([targetType])
+  @@index([createdAt])
+}
+
+model ReportArtifact {
+  id        String          @id
+  kind      String
+  targetId  String
+  case      CaseRecord?     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  caseId    String?
+  subject   SubjectProfile? @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  subjectId String?
+  title     String
+  createdAt DateTime
+  html      String
+
+  @@index([kind])
+  @@index([targetId])
+  @@index([createdAt])
+}
